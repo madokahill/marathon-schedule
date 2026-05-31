@@ -122,14 +122,18 @@ def crawl_marathon_online():
             # 전화번호 제거
             organizer = re.sub(r'☎.*', '', organizer).strip()
 
-            # 링크 찾기
+            # 링크 찾기 (javascript:open_window('win','view.php?no=12345',...) 파싱)
             link_tag = row.find("a")
             link = ""
             if link_tag and link_tag.get("href"):
                 href = link_tag["href"]
-                if href.startswith("http"):
+                # javascript:open_window 형태에서 no 추출
+                no_match = re.search(r"view\.php\?no=(\d+)", href)
+                if no_match:
+                    link = f"http://www.roadrun.co.kr/schedule/view.php?no={no_match.group(1)}"
+                elif href.startswith("http"):
                     link = href
-                else:
+                elif not href.startswith("javascript"):
                     link = "http://www.roadrun.co.kr/" + href.lstrip("/")
 
             if title and date_str:
