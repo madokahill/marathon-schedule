@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>마라톤 대회 일정</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
+    .badge-full { background: #fee2e2; color: #b91c1c; }
+    .badge-half { background: #dbeafe; color: #1d4ed8; }
+    .badge-10k  { background: #d1fae5; color: #065f46; }
+    .badge-5k   { background: #fef9c3; color: #854d0e; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 헤더 -->
+  <header class="bg-white shadow-sm sticky top-0 z-10">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-2xl">🏃</span>
+        <h1 class="text-xl font-bold text-gray-800">마라톤 대회 일정</h1>
+      </div>
+      <button
+        onclick="triggerCrawl()"
+        class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
+      >
+        데이터 새로고침
+      </button>
+    </div>
+  </header>
+
+  <!-- 메인 -->
+  <main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- 통계 -->
+    <div class="grid grid-cols-3 gap-4 mb-8">
+      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div id="stat-total" class="text-3xl font-bold text-blue-600">{{ total }}</div>
+        <div class="text-sm text-gray-500 mt-1">전체 대회</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div id="stat-upcoming" class="text-3xl font-bold text-green-600">-</div>
+        <div class="text-sm text-gray-500 mt-1">예정 대회</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
+        <div id="stat-thismonth" class="text-3xl font-bold text-orange-500">-</div>
+        <div class="text-sm text-gray-500 mt-1">이번 달</div>
+      </div>
+    </div>
+
+    <!-- 검색/필터 -->
+    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3">
+      <input
+        id="search-input"
+        type="text"
+        placeholder="대회명 또는 지역 검색..."
+        class="flex-1 min-w-48 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        oninput="filterRaces()"
+      />
+      <select
+        id="distance-filter"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        onchange="filterRaces()"
+      >
+        <option value="">모든 거리</option>
+        <option value="풀">풀마라톤</option>
+        <option value="하프">하프</option>
+        <option value="10K">10K</option>
+        <option value="5K">5K</option>
+      </select>
+      <select
+        id="month-filter"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        onchange="filterRaces()"
+      >
+        <option value="">모든 월</option>
+        <option value="1">1월</option><option value="2">2월</option>
+        <option value="3">3월</option><option value="4">4월</option>
+        <option value="5">5월</option><option value="6">6월</option>
+        <option value="7">7월</option><option value="8">8월</option>
+        <option value="9">9월</option><option value="10">10월</option>
+        <option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+
+    <!-- 결과 수 -->
+    <div class="text-sm text-gray-500 mb-3" id="result-count"></div>
+
+    <!-- 대회 목록 -->
+    <div id="race-list" class="space-y-3">
+      {% for race in races %}
+      <div class="race-card bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition cursor-pointer"
+           data-title="{{ race.title }}"
+           data-date="{{ race.date }}"
+           data-location="{{ race.location }}"
+           data-distance="{{ race.distance }}"
+           data-organizer="{{ race.organizer }}"
+           data-url="{{ race.url }}"
+           onclick="openDetail(this)">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <h2 class="font-semibold text-gray-800 text-base mb-1">{{ race.title }}</h2>
+            <div class="flex flex-wrap gap-2 text-sm text-gray-500">
+              <span>📅 {{ race.date }}</span>
+              {% if race.location %}
+              <span>📍 {{ race.location }}</span>
+              {% endif %}
+              {% if race.organizer %}
+              <span>🏢 {{ race.organizer }}</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-1 justify-end shrink-0">
+            {% if '풀' in race.distance %}
+            <span class="badge-full text-xs font-medium px-2 py-0.5 rounded-full">풀</span>
+            {% endif %}
+            {% if '하프' in race.distance %}
+            <span class="badge-half text-xs font-medium px-2 py-0.5 rounded-full">하프</span>
+            {% endif %}
+            {% if '10K' in race.distance or '10k' in race.distance %}
+            <span class="badge-10k text-xs font-medium px-2 py-0.5 rounded-full">10K</span>
+            {% endif %}
+            {% if '5K' in race.distance or '5k' in race.distance %}
+            <span class="badge-5k text-xs font-medium px-2 py-0.5 rounded-full">5K</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div id="empty-state" class="hidden text-center py-16 text-gray-400">
+      <div class="text-4xl mb-3">🔍</div>
+      <p>검색 결과가 없습니다.</p>
+    </div>
+  </main>
+
+  <!-- 상세 모달 -->
+  <div id="modal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+      <div class="flex justify-between items-start mb-4">
+        <h2 id="modal-title" class="text-lg font-bold text-gray-800"></h2>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+      </div>
+      <dl class="space-y-2 text-sm">
+        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">날짜</dt><dd id="modal-date" class="text-gray-700"></dd></div>
+        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">장소</dt><dd id="modal-location" class="text-gray-700"></dd></div>
+        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">거리</dt><dd id="modal-distance" class="text-gray-700"></dd></div>
+        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">주최</dt><dd id="modal-organizer" class="text-gray-700"></dd></div>
+      </dl>
+      <div id="modal-link-wrap" class="mt-5 hidden">
+        <a id="modal-link" href="#" target="_blank"
+           class="block text-center bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm transition">
+          공식 사이트 방문
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-2.5 rounded-full text-sm shadow-lg hidden z-50"></div>
+
+  <script>
+    // 초기 통계 계산
+    const today = new Date().toISOString().slice(0, 10);
+    const thisMonth = today.slice(0, 7);
+
+    const cards = document.querySelectorAll('.race-card');
+    let upcoming = 0, thisMonthCount = 0;
+    cards.forEach(c => {
+      const d = c.dataset.date;
+      if (d >= today) upcoming++;
+      if (d.startsWith(thisMonth)) thisMonthCount++;
+    });
+    document.getElementById('stat-upcoming').textContent = upcoming;
+    document.getElementById('stat-thismonth').textContent = thisMonthCount;
+    updateCount(cards.length);
+
+    function filterRaces() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const dist = document.getElementById('distance-filter').value;
+      const month = document.getElementById('month-filter').value.padStart(2, '0');
+
+      let visible = 0;
+      cards.forEach(c => {
+        const matchQ = !q || c.dataset.title.toLowerCase().includes(q) || c.dataset.location.toLowerCase().includes(q);
+        const matchD = !dist || c.dataset.distance.includes(dist);
+        const matchM = !month || (c.dataset.date && c.dataset.date.split('-')[1] === month);
+        const show = matchQ && matchD && matchM;
+        c.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      updateCount(visible);
+    }
+
+    function updateCount(n) {
+      document.getElementById('result-count').textContent = `${n}건의 대회`;
+      document.getElementById('empty-state').classList.toggle('hidden', n > 0);
+    }
+
+    function openDetail(el) {
+      document.getElementById('modal-title').textContent = el.dataset.title;
+      document.getElementById('modal-date').textContent = el.dataset.date || '-';
+      document.getElementById('modal-location').textContent = el.dataset.location || '-';
+      document.getElementById('modal-distance').textContent = el.dataset.distance || '-';
+      document.getElementById('modal-organizer').textContent = el.dataset.organizer || '-';
+      const wrap = document.getElementById('modal-link-wrap');
+      const link = document.getElementById('modal-link');
+      if (el.dataset.url) {
+        link.href = el.dataset.url;
+        wrap.classList.remove('hidden');
+      } else {
+        wrap.classList.add('hidden');
+      }
+      document.getElementById('modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    document.getElementById('modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    async function triggerCrawl() {
+      showToast('데이터를 수집하는 중...');
+      const res = await fetch('/api/crawl', { method: 'POST' });
+      const data = await res.json();
+      showToast('완료! 페이지를 새로고침합니다.');
+      setTimeout(() => location.reload(), 1500);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+  </script>
+</body>
+</html>
