@@ -137,16 +137,32 @@ def crawl_marathon_online():
                     link = "http://www.roadrun.co.kr/" + href.lstrip("/")
 
             if title and date_str:
+                # 상세 페이지에서 실제 홈페이지 URL 추출
+                homepage = ""
+                if link:
+                    try:
+                        detail_res = requests.get(link, headers=headers, timeout=5, verify=False)
+                        try: detail_text = detail_res.content.decode('utf-8')
+                        except: detail_text = detail_res.content.decode('euc-kr', errors='ignore')
+                        detail_soup = BeautifulSoup(detail_text, 'html.parser')
+                        for a in detail_soup.find_all('a', href=True):
+                            href = a['href']
+                            if href.startswith('http') and 'roadrun' not in href:
+                                homepage = href
+                                break
+                    except:
+                        pass
+
                 results.append({
                     "title": title,
                     "date": date_str,
                     "location": location,
                     "distance": distance,
                     "organizer": organizer,
-                    "url": link,
+                    "url": homepage or link,
                     "reg_start": "",
                     "reg_end": "",
-                    "reg_url": link,
+                    "reg_url": homepage or link,
                     "source": "roadrun.co.kr",
                 })
 
