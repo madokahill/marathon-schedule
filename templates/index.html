@@ -352,11 +352,12 @@
   function filterRaces() {
     const q = document.getElementById('search-input').value.toLowerCase();
     const dist = document.getElementById('distance-filter').value;
-    const month = document.getElementById('month-filter').value.padStart(2,'0');
+    const rawMonth = document.getElementById('month-filter').value;
+    const month = rawMonth ? rawMonth.padStart(2,'0') : '';
     let visible = 0;
     upcomingCards.forEach(c => {
       const mQ = !q || c.dataset.title.toLowerCase().includes(q) || c.dataset.location.toLowerCase().includes(q);
-      const mD = !dist || c.dataset.distance.includes(dist);
+      const mD = !dist || c.dataset.distance.toLowerCase().includes(dist.toLowerCase());
       const mM = !month || (c.dataset.date && c.dataset.date.split('-')[1] === month);
       const show = mQ && mD && mM;
       c.classList.toggle('hidden', !show);
