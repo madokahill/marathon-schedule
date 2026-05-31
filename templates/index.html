@@ -5,193 +5,391 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>마라톤 대회 일정</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
-    body { font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif; }
-    .badge-full { background: #fee2e2; color: #b91c1c; }
-    .badge-half { background: #dbeafe; color: #1d4ed8; }
-    .badge-10k  { background: #d1fae5; color: #065f46; }
-    .badge-5k   { background: #fef9c3; color: #854d0e; }
+    * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
+
+    .hero-bg {
+      background: linear-gradient(160deg, #0a0f1e 0%, #0c2340 40%, #0f3460 70%, #0a1628 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-bg::after {
+      content: '';
+      position: absolute;
+      bottom: -20%;
+      left: 20%;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .accent { color: #38bdf8; }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      background: rgba(56,189,248,0.08);
+      border-color: rgba(56,189,248,0.3);
+      transform: translateY(-2px);
+    }
+    .badge-full  { background:#fecaca; color:#991b1b; }
+    .badge-half  { background:#bfdbfe; color:#1e40af; }
+    .badge-10k   { background:#bbf7d0; color:#166534; }
+    .badge-5k    { background:#fef08a; color:#854d0e; }
+
+    .cal-day { min-height: 80px; }
+    .cal-day.has-race { cursor: pointer; }
+    .cal-day.has-race:hover { background: rgba(56,189,248,0.1); }
+
+    .tab-active {
+      color: #38bdf8;
+      border-bottom: 2px solid #38bdf8;
+    }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="bg-slate-900 text-slate-100 min-h-screen">
 
-  <!-- 헤더 -->
-  <header class="bg-white shadow-sm sticky top-0 z-10">
-    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <span class="text-2xl">🏃</span>
-        <h1 class="text-xl font-bold text-gray-800">마라톤 대회 일정</h1>
+  <!-- 히어로 헤더 -->
+  <header class="hero-bg border-b border-white/5">
+    <div class="max-w-6xl mx-auto px-6 py-14 relative z-10">
+      <!-- 상단 네비 -->
+      <div class="flex items-center justify-between mb-10">
+        <div class="text-xs tracking-widest"><span class="text-white font-bold">YRC</span> <span class="text-slate-500">· Yuanta Running Crew</span></div>
+        <button onclick="triggerCrawl()"
+          class="flex items-center gap-2 text-slate-400 hover:text-sky-400 text-xs transition">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          업데이트
+        </button>
       </div>
-      <button
-        onclick="triggerCrawl()"
-        class="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition"
-      >
-        데이터 새로고침
-      </button>
+
+      <!-- 메인 타이틀 -->
+      <div class="mb-10">
+        <p class="text-sky-400 text-sm font-medium tracking-widest uppercase mb-3">Korea Race Schedule</p>
+        <h1 class="text-5xl font-black text-white leading-tight mb-4">
+          마라톤 <span style="color:#38bdf8;">대회 일정</span>
+        </h1>
+        <p class="text-slate-400 text-base">전국 마라톤·로드레이스·트레일런 대회 정보를 한눈에</p>
+      </div>
+
+      <!-- 검색창 (히어로에 통합) -->
+      <div class="relative max-w-xl">
+        <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input id="search-input" type="text" placeholder="대회명 또는 지역으로 검색..."
+          class="w-full bg-white/8 border border-white/15 rounded-2xl pl-12 pr-4 py-4 text-sm text-white focus:outline-none focus:border-sky-500/70 focus:bg-white/12 placeholder-slate-500 transition backdrop-blur-sm"
+          oninput="filterRaces()" />
+      </div>
     </div>
   </header>
 
-  <!-- 메인 -->
-  <main class="max-w-5xl mx-auto px-4 py-8">
-
-    <!-- 통계 -->
-    <div class="grid grid-cols-3 gap-4 mb-8">
-      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
-        <div id="stat-total" class="text-3xl font-bold text-blue-600">{{ total }}</div>
-        <div class="text-sm text-gray-500 mt-1">전체 대회</div>
-      </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
-        <div id="stat-upcoming" class="text-3xl font-bold text-green-600">-</div>
-        <div class="text-sm text-gray-500 mt-1">예정 대회</div>
-      </div>
-      <div class="bg-white rounded-xl p-4 shadow-sm text-center">
-        <div id="stat-thismonth" class="text-3xl font-bold text-orange-500">-</div>
-        <div class="text-sm text-gray-500 mt-1">이번 달</div>
-      </div>
+  <!-- 탭 -->
+  <div class="max-w-6xl mx-auto px-6">
+    <div class="flex gap-6 border-b border-slate-700/50 mt-2">
+      <button onclick="switchTab('list')" id="tab-list" class="tab-active py-4 text-sm font-medium transition">예정 대회</button>
+      <button onclick="switchTab('past')" id="tab-past" class="py-4 text-sm font-medium text-slate-400 hover:text-white transition">완료 대회</button>
+      <button onclick="switchTab('calendar')" id="tab-calendar" class="py-4 text-sm font-medium text-slate-400 hover:text-white transition">캘린더</button>
     </div>
+  </div>
 
-    <!-- 검색/필터 -->
-    <div class="bg-white rounded-xl shadow-sm p-4 mb-6 flex flex-wrap gap-3">
-      <input
-        id="search-input"
-        type="text"
-        placeholder="대회명 또는 지역 검색..."
-        class="flex-1 min-w-48 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        oninput="filterRaces()"
-      />
-      <select
-        id="distance-filter"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        onchange="filterRaces()"
-      >
+  <main class="max-w-6xl mx-auto px-6 py-6">
+
+    <!-- 필터 -->
+    <div class="flex flex-wrap gap-3 mb-6">
+      <select id="distance-filter" onchange="filterRaces()"
+        class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 text-slate-300">
         <option value="">모든 거리</option>
         <option value="풀">풀마라톤</option>
         <option value="하프">하프</option>
         <option value="10K">10K</option>
         <option value="5K">5K</option>
       </select>
-      <select
-        id="month-filter"
-        class="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-        onchange="filterRaces()"
-      >
+      <select id="month-filter" onchange="filterRaces()"
+        class="bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-sky-500 text-slate-300">
         <option value="">모든 월</option>
-        <option value="1">1월</option><option value="2">2월</option>
-        <option value="3">3월</option><option value="4">4월</option>
-        <option value="5">5월</option><option value="6">6월</option>
-        <option value="7">7월</option><option value="8">8월</option>
-        <option value="9">9월</option><option value="10">10월</option>
-        <option value="11">11월</option><option value="12">12월</option>
+        {% for m in range(1,13) %}
+        <option value="{{ m }}">{{ m }}월</option>
+        {% endfor %}
       </select>
     </div>
 
     <!-- 결과 수 -->
-    <div class="text-sm text-gray-500 mb-3" id="result-count"></div>
+    <div class="text-xs text-slate-500 mb-4" id="result-count"></div>
 
-    <!-- 대회 목록 -->
-    <div id="race-list" class="space-y-3">
-      {% for race in races %}
-      <div class="race-card bg-white rounded-xl shadow-sm p-5 hover:shadow-md transition cursor-pointer"
-           data-title="{{ race.title }}"
-           data-date="{{ race.date }}"
-           data-location="{{ race.location }}"
-           data-distance="{{ race.distance }}"
-           data-organizer="{{ race.organizer }}"
-           data-url="{{ race.url }}"
-           onclick="openDetail(this)">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex-1">
-            <h2 class="font-semibold text-gray-800 text-base mb-1">{{ race.title }}</h2>
-            <div class="flex flex-wrap gap-2 text-sm text-gray-500">
-              <span>📅 {{ race.date }}</span>
-              {% if race.location %}
-              <span>📍 {{ race.location }}</span>
+    <!-- 예정 대회 탭 -->
+    <div id="view-list">
+        <div id="race-list-upcoming" class="grid gap-3 mb-8">
+          {% for race in races if race.date >= today %}
+          {% set reg_open = race.reg_start and race.reg_end and race.reg_start <= today and today <= race.reg_end %}
+          {% set reg_closed = race.reg_end and today > race.reg_end %}
+          <div class="race-card card rounded-2xl p-5 cursor-pointer"
+               data-title="{{ race.title }}"
+               data-date="{{ race.date }}"
+               data-location="{{ race.location }}"
+               data-distance="{{ race.distance }}"
+               data-organizer="{{ race.organizer }}"
+               data-url="{{ race.url }}"
+               data-reg-start="{{ race.reg_start or '' }}"
+               data-reg-end="{{ race.reg_end or '' }}"
+               data-reg-url="{{ race.reg_url or '' }}"
+               data-status="upcoming"
+               onclick="openDetail(this)">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex-1">
+                <div class="flex items-center gap-2 mb-2 flex-wrap">
+                  {% if reg_closed or '마감' in race.title %}
+                  <span class="text-xs font-bold px-3 py-0.5 rounded-full bg-red-500 text-white shadow-lg shadow-red-500/40">✕ 접수마감</span>
+                  {% else %}
+                  <span class="text-xs font-bold px-3 py-0.5 rounded-full bg-blue-500 text-white shadow-lg shadow-blue-500/40">● 접수중</span>
+                  {% endif %}
+                </div>
+                <h2 class="font-bold text-base text-white mb-2">{{ race.title }}</h2>
+                <div class="flex flex-wrap gap-3 text-xs text-slate-400">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    {{ race.date }}
+                  </span>
+                  {% if race.location %}
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    {{ race.location }}
+                  </span>
+                  {% endif %}
+                  {% if race.organizer %}
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-2 10v-5a1 1 0 00-1-1h-2a1 1 0 00-1 1v5m4 0H9"/></svg>
+                    {{ race.organizer }}
+                  </span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="flex flex-col gap-1 items-end shrink-0">
+                {% if '풀' in race.distance %}
+                <span class="badge-full text-xs font-bold px-2.5 py-0.5 rounded-full">풀</span>
+                {% endif %}
+                {% if '하프' in race.distance %}
+                <span class="badge-half text-xs font-bold px-2.5 py-0.5 rounded-full">하프</span>
+                {% endif %}
+                {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}
+                <span class="badge-10k text-xs font-bold px-2.5 py-0.5 rounded-full">10K</span>
+                {% endif %}
+                {% if '5K' in race.distance or '5k' in race.distance or '5km' in race.distance %}
+                <span class="badge-5k text-xs font-bold px-2.5 py-0.5 rounded-full">5K</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      <div id="empty-state" class="hidden text-center py-20 text-slate-600">
+        <div class="text-5xl mb-4">🔍</div>
+        <p>검색 결과가 없습니다.</p>
+      </div>
+    </div>
+
+    <!-- 완료 대회 탭 -->
+    <div id="view-past" class="hidden">
+      <div class="grid gap-3">
+        {% for race in races if race.date < today %}
+        <div class="race-card card rounded-2xl p-5 cursor-pointer opacity-90 hover:opacity-100"
+             data-title="{{ race.title }}"
+             data-date="{{ race.date }}"
+             data-location="{{ race.location }}"
+             data-distance="{{ race.distance }}"
+             data-organizer="{{ race.organizer }}"
+             data-url="{{ race.url }}"
+             data-reg-start="{{ race.reg_start or '' }}"
+             data-reg-end="{{ race.reg_end or '' }}"
+             data-reg-url="{{ race.reg_url or '' }}"
+             data-status="past"
+             onclick="openDetail(this)">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-2 mb-2">
+                <span class="text-xs font-bold px-3 py-0.5 rounded-full bg-slate-700 text-slate-500 border border-slate-600/40">종료</span>
+              </div>
+              <h2 class="font-bold text-base text-slate-200 mb-2">{{ race.title }}</h2>
+              <div class="flex flex-wrap gap-3 text-xs text-slate-400">
+                <span>📅 {{ race.date }}</span>
+                {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
+                {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
+              </div>
+            </div>
+            <div class="flex flex-col gap-1 items-end shrink-0">
+              {% if '풀' in race.distance %}
+              <span class="badge-full text-xs font-bold px-2.5 py-0.5 rounded-full">풀</span>
               {% endif %}
-              {% if race.organizer %}
-              <span>🏢 {{ race.organizer }}</span>
+              {% if '하프' in race.distance %}
+              <span class="badge-half text-xs font-bold px-2.5 py-0.5 rounded-full">하프</span>
+              {% endif %}
+              {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}
+              <span class="badge-10k text-xs font-bold px-2.5 py-0.5 rounded-full">10K</span>
+              {% endif %}
+              {% if '5K' in race.distance or '5k' in race.distance or '5km' in race.distance %}
+              <span class="badge-5k text-xs font-bold px-2.5 py-0.5 rounded-full">5K</span>
               {% endif %}
             </div>
           </div>
-          <div class="flex flex-wrap gap-1 justify-end shrink-0">
-            {% if '풀' in race.distance %}
-            <span class="badge-full text-xs font-medium px-2 py-0.5 rounded-full">풀</span>
-            {% endif %}
-            {% if '하프' in race.distance %}
-            <span class="badge-half text-xs font-medium px-2 py-0.5 rounded-full">하프</span>
-            {% endif %}
-            {% if '10K' in race.distance or '10k' in race.distance %}
-            <span class="badge-10k text-xs font-medium px-2 py-0.5 rounded-full">10K</span>
-            {% endif %}
-            {% if '5K' in race.distance or '5k' in race.distance %}
-            <span class="badge-5k text-xs font-medium px-2 py-0.5 rounded-full">5K</span>
-            {% endif %}
-          </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
 
-    <div id="empty-state" class="hidden text-center py-16 text-gray-400">
-      <div class="text-4xl mb-3">🔍</div>
-      <p>검색 결과가 없습니다.</p>
+    <!-- 캘린더 탭 -->
+    <div id="view-calendar" class="hidden">
+      <div class="flex items-center justify-between mb-4">
+        <button onclick="changeMonth(-1)" class="p-2 rounded-xl hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <h2 class="text-lg font-bold" id="cal-title"></h2>
+        <button onclick="changeMonth(1)" class="p-2 rounded-xl hover:bg-slate-800 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <div class="grid grid-cols-7 gap-1 mb-1">
+        {% for day in ['일','월','화','수','목','금','토'] %}
+        <div class="text-center text-xs text-slate-500 py-2">{{ day }}</div>
+        {% endfor %}
+      </div>
+      <div id="cal-grid" class="grid grid-cols-7 gap-1"></div>
     </div>
+
   </main>
 
   <!-- 상세 모달 -->
-  <div id="modal" class="fixed inset-0 bg-black/40 z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
-      <div class="flex justify-between items-start mb-4">
-        <h2 id="modal-title" class="text-lg font-bold text-gray-800"></h2>
-        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+  <div id="modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl max-w-md w-full p-6">
+      <div class="flex justify-between items-start mb-5">
+        <h2 id="modal-title" class="text-lg font-bold text-white pr-4"></h2>
+        <button onclick="closeModal()" class="text-slate-500 hover:text-white transition text-2xl leading-none shrink-0">&times;</button>
       </div>
-      <dl class="space-y-2 text-sm">
-        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">날짜</dt><dd id="modal-date" class="text-gray-700"></dd></div>
-        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">장소</dt><dd id="modal-location" class="text-gray-700"></dd></div>
-        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">거리</dt><dd id="modal-distance" class="text-gray-700"></dd></div>
-        <div class="flex gap-2"><dt class="text-gray-400 w-16 shrink-0">주최</dt><dd id="modal-organizer" class="text-gray-700"></dd></div>
+
+      <!-- 접수 상태 배지 -->
+      <div id="modal-reg-status" class="mb-4"></div>
+
+      <dl class="space-y-3 text-sm">
+        <div class="flex gap-3">
+          <dt class="text-slate-500 w-16 shrink-0">대회일</dt>
+          <dd id="modal-date" class="text-slate-200"></dd>
+        </div>
+        <div class="flex gap-3">
+          <dt class="text-slate-500 w-16 shrink-0">장소</dt>
+          <dd id="modal-location" class="text-slate-200"></dd>
+        </div>
+        <div class="flex gap-3">
+          <dt class="text-slate-500 w-16 shrink-0">거리</dt>
+          <dd id="modal-distance" class="text-slate-200"></dd>
+        </div>
+        <div class="flex gap-3">
+          <dt class="text-slate-500 w-16 shrink-0">주최</dt>
+          <dd id="modal-organizer" class="text-slate-200"></dd>
+        </div>
+        <!-- 접수 일정 -->
+        <div id="modal-reg-wrap" class="hidden">
+          <div class="border-t border-slate-700 pt-3 mt-1">
+            <div class="text-xs text-slate-500 uppercase tracking-widest mb-2">접수 일정</div>
+            <div class="flex gap-3">
+              <dt class="text-slate-500 w-16 shrink-0">접수 시작</dt>
+              <dd id="modal-reg-start" class="text-slate-200"></dd>
+            </div>
+            <div class="flex gap-3 mt-2">
+              <dt class="text-slate-500 w-16 shrink-0">접수 마감</dt>
+              <dd id="modal-reg-end" class="text-slate-200"></dd>
+            </div>
+          </div>
+        </div>
       </dl>
-      <div id="modal-link-wrap" class="mt-5 hidden">
-        <a id="modal-link" href="#" target="_blank"
-           class="block text-center bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2 text-sm transition">
-          공식 사이트 방문
-        </a>
+
+      <div class="mt-5 flex gap-2">
+        <div id="modal-reg-link-wrap" class="flex-1 hidden">
+          <a id="modal-reg-link" href="#" target="_blank"
+             class="block text-center bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl py-2.5 text-sm font-medium transition">
+            접수하기 →
+          </a>
+        </div>
+        <div id="modal-link-wrap" class="flex-1 hidden">
+          <a id="modal-link" href="#" target="_blank"
+             class="block text-center bg-slate-600 hover:bg-slate-500 text-white rounded-xl py-2.5 text-sm font-medium transition">
+            대회 정보 →
+          </a>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- 토스트 -->
-  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-800 text-white px-5 py-2.5 rounded-full text-sm shadow-lg hidden z-50"></div>
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-700 border border-slate-600 text-white px-5 py-2.5 rounded-full text-sm shadow-xl hidden z-50"></div>
 
   <script>
-    // 초기 통계 계산
-    const today = new Date().toISOString().slice(0, 10);
-    const thisMonth = today.slice(0, 7);
+    const today = new Date().toISOString().slice(0,10);
+    const thisMonth = today.slice(0,7);
 
-    const cards = document.querySelectorAll('.race-card');
-    let upcoming = 0, thisMonthCount = 0;
-    cards.forEach(c => {
-      const d = c.dataset.date;
-      if (d >= today) upcoming++;
-      if (d.startsWith(thisMonth)) thisMonthCount++;
-    });
+    // 전체 대회 데이터
+    const allRaces = [
+      {% for race in races %}
+      { title: {{ race.title | tojson }}, date: {{ race.date | tojson }}, location: {{ race.location | tojson }}, distance: {{ race.distance | tojson }}, organizer: {{ race.organizer | tojson }}, url: {{ race.url | tojson }} },
+      {% endfor %}
+    ];
+
+    // 통계
+    const upcoming = allRaces.filter(r => r.date >= today).length;
+    const thisMonthCount = allRaces.filter(r => r.date && r.date.startsWith(thisMonth)).length;
     document.getElementById('stat-upcoming').textContent = upcoming;
     document.getElementById('stat-thismonth').textContent = thisMonthCount;
-    updateCount(cards.length);
+    updateCount(allRaces.length);
 
+    // 탭 전환
+    function switchTab(tab) {
+      ['list','past','calendar'].forEach(t => {
+        document.getElementById('view-' + t)?.classList.toggle('hidden', t !== tab);
+        const el = document.getElementById('tab-' + t);
+        if (el) el.className = t === tab ? 'tab-active py-4 text-sm font-medium transition' : 'py-4 text-sm font-medium text-slate-400 hover:text-white transition';
+      });
+      if (tab === 'calendar') renderCalendar();
+    }
+
+    // 필터
+    const cards = document.querySelectorAll('.race-card');
     function filterRaces() {
       const q = document.getElementById('search-input').value.toLowerCase();
       const dist = document.getElementById('distance-filter').value;
-      const month = document.getElementById('month-filter').value.padStart(2, '0');
-
+      const month = document.getElementById('month-filter').value.padStart(2,'0');
       let visible = 0;
       cards.forEach(c => {
-        const matchQ = !q || c.dataset.title.toLowerCase().includes(q) || c.dataset.location.toLowerCase().includes(q);
-        const matchD = !dist || c.dataset.distance.includes(dist);
+        const matchQ = !q || c.dataset.title.toLowerCase().includes(q) || (c.dataset.location||'').toLowerCase().includes(q);
+        const matchD = !dist || (c.dataset.distance||'').includes(dist);
         const matchM = !month || (c.dataset.date && c.dataset.date.split('-')[1] === month);
         const show = matchQ && matchD && matchM;
         c.classList.toggle('hidden', !show);
         if (show) visible++;
       });
+      // 검색 중이면 종료된 대회도 펼치기
+      const pastList = document.getElementById('race-list-past');
+      if (q || dist || month) {
+        pastList.classList.remove('hidden');
+        document.getElementById('past-chevron').style.transform = 'rotate(180deg)';
+      }
       updateCount(visible);
     }
 
@@ -200,35 +398,117 @@
       document.getElementById('empty-state').classList.toggle('hidden', n > 0);
     }
 
+    // 모달
     function openDetail(el) {
-      document.getElementById('modal-title').textContent = el.dataset.title;
-      document.getElementById('modal-date').textContent = el.dataset.date || '-';
-      document.getElementById('modal-location').textContent = el.dataset.location || '-';
-      document.getElementById('modal-distance').textContent = el.dataset.distance || '-';
-      document.getElementById('modal-organizer').textContent = el.dataset.organizer || '-';
-      const wrap = document.getElementById('modal-link-wrap');
-      const link = document.getElementById('modal-link');
-      if (el.dataset.url) {
-        link.href = el.dataset.url;
-        wrap.classList.remove('hidden');
+      const d = el.dataset;
+      document.getElementById('modal-title').textContent = d.title;
+      document.getElementById('modal-date').textContent = d.date || '-';
+      document.getElementById('modal-location').textContent = d.location || '-';
+      document.getElementById('modal-distance').textContent = d.distance || '-';
+      document.getElementById('modal-organizer').textContent = d.organizer || '-';
+
+      // 접수 상태
+      const statusEl = document.getElementById('modal-reg-status');
+      const regStart = d.regStart || '';
+      const regEnd = d.regEnd || '';
+      if (regStart && regEnd) {
+        const now = today;
+        let statusHtml = '';
+        if (now < regStart) {
+          statusHtml = `<span class="inline-block bg-blue-500/20 text-blue-300 text-xs font-bold px-3 py-1 rounded-full">📅 접수 예정 (${regStart} 시작)</span>`;
+        } else if (now >= regStart && now <= regEnd) {
+          statusHtml = `<span class="inline-block bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1 rounded-full">✅ 접수 중</span>`;
+        } else {
+          statusHtml = `<span class="inline-block bg-slate-600/50 text-slate-400 text-xs font-bold px-3 py-1 rounded-full">🔒 접수 마감</span>`;
+        }
+        statusEl.innerHTML = statusHtml;
       } else {
-        wrap.classList.add('hidden');
+        statusEl.innerHTML = '';
       }
+
+      // 접수 일정
+      const regWrap = document.getElementById('modal-reg-wrap');
+      if (regStart || regEnd) {
+        document.getElementById('modal-reg-start').textContent = regStart || '-';
+        document.getElementById('modal-reg-end').textContent = regEnd || '-';
+        regWrap.classList.remove('hidden');
+      } else {
+        regWrap.classList.add('hidden');
+      }
+
+      // 접수 링크
+      const regLinkWrap = document.getElementById('modal-reg-link-wrap');
+      const regLink = document.getElementById('modal-reg-link');
+      if (d.regUrl) { regLink.href = d.regUrl; regLinkWrap.classList.remove('hidden'); }
+      else regLinkWrap.classList.add('hidden');
+
+      // 대회 정보 링크
+      const linkWrap = document.getElementById('modal-link-wrap');
+      const link = document.getElementById('modal-link');
+      if (d.url && d.url !== d.regUrl) { link.href = d.url; linkWrap.classList.remove('hidden'); }
+      else linkWrap.classList.add('hidden');
+
       document.getElementById('modal').classList.remove('hidden');
     }
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    document.getElementById('modal').addEventListener('click', e => { if (e.target === document.getElementById('modal')) closeModal(); });
 
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
+    // 캘린더
+    let calYear = new Date().getFullYear();
+    let calMonth = new Date().getMonth();
+
+    function renderCalendar() {
+      const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+      document.getElementById('cal-title').textContent = `${calYear}년 ${months[calMonth]}`;
+      const grid = document.getElementById('cal-grid');
+      grid.innerHTML = '';
+      const firstDay = new Date(calYear, calMonth, 1).getDay();
+      const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+
+      // 빈 칸
+      for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `<div class="cal-day rounded-xl p-1"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const dayRaces = allRaces.filter(r => r.date === dateStr);
+        const isToday = dateStr === today;
+        const hasRace = dayRaces.length > 0;
+
+        let html = `<div class="cal-day rounded-xl p-1.5 ${hasRace ? 'has-race' : ''} ${isToday ? 'ring-1 ring-sky-500' : ''}"
+                        ${hasRace ? `onclick="openCalDetail('${dateStr}')"` : ''}>
+          <div class="text-xs font-medium mb-1 ${isToday ? 'text-sky-400' : 'text-slate-400'}">${d}</div>`;
+        dayRaces.slice(0,2).forEach(r => {
+          html += `<div class="text-xs bg-sky-500/20 text-sky-300 rounded px-1 py-0.5 mb-0.5 truncate">${r.title.slice(0,8)}</div>`;
+        });
+        if (dayRaces.length > 2) html += `<div class="text-xs text-slate-500">+${dayRaces.length-2}개</div>`;
+        html += `</div>`;
+        grid.innerHTML += html;
+      }
     }
 
-    document.getElementById('modal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
+    function openCalDetail(dateStr) {
+      const dayRaces = allRaces.filter(r => r.date === dateStr);
+      if (dayRaces.length === 1) {
+        const r = dayRaces[0];
+        const el = document.createElement('div');
+        Object.assign(el.dataset, { title: r.title, date: r.date, location: r.location, distance: r.distance, organizer: r.organizer, url: r.url });
+        openDetail(el);
+      }
+    }
 
+    function changeMonth(dir) {
+      calMonth += dir;
+      if (calMonth > 11) { calMonth = 0; calYear++; }
+      if (calMonth < 0) { calMonth = 11; calYear--; }
+      renderCalendar();
+    }
+
+    // 데이터 업데이트
     async function triggerCrawl() {
       showToast('데이터를 수집하는 중...');
       const res = await fetch('/api/crawl', { method: 'POST' });
-      const data = await res.json();
       showToast('완료! 페이지를 새로고침합니다.');
       setTimeout(() => location.reload(), 1500);
     }

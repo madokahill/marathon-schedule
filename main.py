@@ -3,6 +3,7 @@ import sqlite3
 import os
 import subprocess
 import sys
+from datetime import date
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -40,7 +41,8 @@ def index():
         scraper = os.path.join(BASE_DIR, "crawler", "scraper.py")
         subprocess.run([sys.executable, scraper])
     races = get_races()
-    return render_template("index.html", races=races, total=len(races))
+    today = date.today().isoformat()
+    return render_template("index.html", races=races, total=len(races), today=today)
 
 
 @app.route("/api/races")
