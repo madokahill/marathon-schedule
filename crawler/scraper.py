@@ -43,6 +43,9 @@ def init_db():
             created_at TEXT DEFAULT (datetime('now', 'localtime'))
         )
     """)
+    columns = [row[1] for row in c.execute("PRAGMA table_info(races)").fetchall()]
+    if "is_pick" not in columns:
+        c.execute("ALTER TABLE races ADD COLUMN is_pick INTEGER DEFAULT 0")
     conn.commit()
     conn.close()
 

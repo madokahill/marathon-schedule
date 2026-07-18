@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 import sqlite3
 import os
 import subprocess
@@ -11,6 +11,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "crawler"))
 from scraper import init_db
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
+
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "yrc2026")
 
 BASE_DIR = os.path.dirname(__file__)
 DB_PATH = os.path.join(BASE_DIR, "marathon.db")
@@ -53,6 +56,18 @@ def get_races(search="", distance="", month=""):
     return [dict(r) for r in rows]
 
 
+def get_picks():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    today = date.today().isoformat()
+    rows = c.execute(
+        "SELECT * FROM races WHERE is_pick = 1 AND date >= ? ORDER BY date ASC", (today,)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
 def get_news(limit=15):
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -84,8 +99,10 @@ def index():
     upcoming = [r for r in races if r["date"] >= today]
     month_groups = group_by_month(upcoming)
     news = get_news()
+    picks = get_picks()
     return render_template(
-        "index.html", races=races, month_groups=month_groups, total=len(upcoming), today=today, news=news
+        "index.html", races=races, month_groups=month_groups, total=len(upcoming),
+        today=today, news=news, picks=picks
     )
 
 
@@ -102,6 +119,48 @@ def api_races():
 def trigger_crawl():
     result = run_scraper()
     return jsonify({"status": "ok", "output": result.stdout, "error": result.stderr})
+
+
+@app.route("/admin", methods=["GET", "POST"])
+def admin():
+    if request.method == "POST":
+        if request.form.get("password") == ADMIN_PASSWORD:
+            session["is_admin"] = True
+        return redirect(url_for("admin"))
+
+    if not session.get("is_admin"):
+        return render_template("admin.html", authed=False)
+
+    today = date.today().isoformat()
+    search = request.args.get("search", "")
+    races = get_races(search=search)
+    upcoming = [r for r in races if r["date"] >= today]
+    return render_template("admin.html", authed=True, races=upcoming, search=search)
+
+
+@app.route("/admin/logout", methods=["POST"])
+def admin_logout():
+    session.pop("is_admin", None)
+    return redirect(url_for("admin"))
+
+
+@app.route("/api/pick/<int:race_id>", methods=["POST"])
+def toggle_pick(race_id):
+    if not session.get("is_admin"):
+        return jsonify({"error": "unauthorized"}), 401
+
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    row = c.execute("SELECT is_pick FROM races WHERE id = ?", (race_id,)).fetchone()
+    if row is None:
+        conn.close()
+        return jsonify({"error": "not found"}), 404
+
+    new_value = 0 if row[0] else 1
+    c.execute("UPDATE races SET is_pick = ? WHERE id = ?", (new_value, race_id))
+    conn.commit()
+    conn.close()
+    return jsonify({"id": race_id, "is_pick": bool(new_value)})
 
 
 if __name__ == "__main__":

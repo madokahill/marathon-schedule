@@ -137,8 +137,52 @@
   </div>
 </header>
 
+{% macro race_row(race) %}
+{% set is_closed = '마감' in race.title or (race.reg_end and today > race.reg_end) %}
+<div class="race-row"
+     data-title="{{ race.title }}"
+     data-date="{{ race.date }}"
+     data-location="{{ race.location or '' }}"
+     data-distance="{{ race.distance or '' }}"
+     data-organizer="{{ race.organizer or '' }}"
+     data-url="{{ race.url or '' }}"
+     data-reg-start="{{ race.reg_start or '' }}"
+     data-reg-end="{{ race.reg_end or '' }}"
+     data-reg-url="{{ race.reg_url or '' }}"
+     onclick="openDetail(this)">
+  <div class="race-row-top">
+    <span class="race-row-day">{{ race.date[8:10] }}일</span>
+    <span class="race-row-title">{{ race.title }}</span>
+    {% if is_closed %}
+    <span class="badge badge-closed">마감</span>
+    {% else %}
+    <span class="badge badge-open">접수중</span>
+    {% endif %}
+    {% if '풀' in race.distance %}<span class="badge-dist bd-full">풀</span>{% endif %}
+    {% if '하프' in race.distance %}<span class="badge-dist bd-half">하프</span>{% endif %}
+    {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}<span class="badge-dist bd-10k">10K</span>{% endif %}
+  </div>
+  <div class="race-row-meta">
+    {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
+    {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
+  </div>
+</div>
+{% endmacro %}
+
 <main class="main">
   <div class="month-grid" id="month-grid">
+    {% if picks %}
+    <div class="month-box pick-box">
+      <div class="month-box-head">
+        <div class="month-box-title">⭐ YRC's Pick</div>
+      </div>
+      <div class="month-race-list">
+        {% for race in picks %}
+        {{ race_row(race) }}
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
     {% if news %}
     <div class="month-box news-box">
       <div class="month-race-list">
@@ -158,35 +202,7 @@
       </div>
       <div class="month-race-list">
         {% for race in group.races %}
-        {% set is_closed = '마감' in race.title or (race.reg_end and today > race.reg_end) %}
-        <div class="race-row"
-             data-title="{{ race.title }}"
-             data-date="{{ race.date }}"
-             data-location="{{ race.location or '' }}"
-             data-distance="{{ race.distance or '' }}"
-             data-organizer="{{ race.organizer or '' }}"
-             data-url="{{ race.url or '' }}"
-             data-reg-start="{{ race.reg_start or '' }}"
-             data-reg-end="{{ race.reg_end or '' }}"
-             data-reg-url="{{ race.reg_url or '' }}"
-             onclick="openDetail(this)">
-          <div class="race-row-top">
-            <span class="race-row-day">{{ race.date[8:10] }}일</span>
-            <span class="race-row-title">{{ race.title }}</span>
-            {% if is_closed %}
-            <span class="badge badge-closed">마감</span>
-            {% else %}
-            <span class="badge badge-open">접수중</span>
-            {% endif %}
-            {% if '풀' in race.distance %}<span class="badge-dist bd-full">풀</span>{% endif %}
-            {% if '하프' in race.distance %}<span class="badge-dist bd-half">하프</span>{% endif %}
-            {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}<span class="badge-dist bd-10k">10K</span>{% endif %}
-          </div>
-          <div class="race-row-meta">
-            {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
-            {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
-          </div>
-        </div>
+        {{ race_row(race) }}
         {% endfor %}
       </div>
     </div>
