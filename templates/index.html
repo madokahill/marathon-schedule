@@ -72,7 +72,7 @@
     .race-row { border-radius: 12px; padding: 8px 10px; cursor: pointer; transition: background 0.15s; }
     .race-row:hover { background: #fff7ed; }
     .race-row-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; }
-    .race-row-day { font-size: 12px; font-weight: 700; color: #f97316; flex-shrink: 0; width: 30px; }
+    .race-row-day { font-size: 12px; font-weight: 700; color: #f97316; flex-shrink: 0; width: 36px; }
     .race-row-title { font-size: 14px; font-weight: 600; color: #1e293b; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .race-row-sub { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #94a3b8; }
 
@@ -136,7 +136,7 @@
   </div>
 </header>
 
-{% macro race_row(race) %}
+{% macro race_row(race, show_month=false) %}
 {% set is_closed = '마감' in race.title or (race.reg_end and today > race.reg_end) %}
 <div class="race-row"
      data-title="{{ race.title }}"
@@ -150,15 +150,15 @@
      data-reg-url="{{ race.reg_url or '' }}"
      onclick="openDetail(this)">
   <div class="race-row-top">
+    {% if show_month %}
+    <span class="race-row-day">{{ race.date[5:7] }}/{{ race.date[8:10] }}</span>
+    {% else %}
     <span class="race-row-day">{{ race.date[8:10] }}일</span>
+    {% endif %}
     <span class="race-row-title">{{ race.title }}</span>
   </div>
   <div class="race-row-sub">
-    {% if is_closed %}
-    <span class="badge badge-closed">마감</span>
-    {% else %}
-    <span class="badge badge-open">접수중</span>
-    {% endif %}
+    {% if is_closed %}<span class="badge badge-closed">마감</span>{% endif %}
     {% if '풀' in race.distance %}<span class="badge-dist bd-full">풀</span>{% endif %}
     {% if '하프' in race.distance %}<span class="badge-dist bd-half">하프</span>{% endif %}
     {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}<span class="badge-dist bd-10k">10K</span>{% endif %}
@@ -170,18 +170,6 @@
 
 <main class="main">
   <div class="month-grid" id="month-grid">
-    {% if picks %}
-    <div class="month-box pick-box">
-      <div class="month-box-head">
-        <div class="month-box-title">⭐ YRC's Pick</div>
-      </div>
-      <div class="month-race-list">
-        {% for race in picks %}
-        {{ race_row(race) }}
-        {% endfor %}
-      </div>
-    </div>
-    {% endif %}
     {% if news %}
     <div class="month-box news-box">
       <div class="month-race-list">
@@ -189,6 +177,18 @@
         <a class="news-row" href="{{ item.url }}" target="_blank" rel="noopener">
           <div class="news-row-title">{{ item.title }}</div>
         </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% if picks %}
+    <div class="month-box pick-box">
+      <div class="month-box-head">
+        <div class="month-box-title">⭐ YRC's Pick</div>
+      </div>
+      <div class="month-race-list">
+        {% for race in picks %}
+        {{ race_row(race, show_month=true) }}
         {% endfor %}
       </div>
     </div>
