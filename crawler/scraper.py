@@ -406,6 +406,8 @@ def crawl_marathon_news(limit=15):
 
 
 def save_news(news: list[dict]):
+    if not news:
+        return
     conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute("DELETE FROM news")
