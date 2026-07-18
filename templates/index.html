@@ -51,7 +51,7 @@
     .news-box .month-race-list { max-height: 150px; gap: 0; }
     .news-row { display: block; border-radius: 8px; padding: 2px 6px; transition: background 0.15s; }
     .news-row:hover { background: #fff7ed; }
-    .news-row-title { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.6; }
+    .news-row-title { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.6; overflow-wrap: break-word; }
 
     /* 월별 박스 그리드 */
     .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
@@ -59,6 +59,7 @@
       background: #fff;
       border-radius: 24px; padding: 24px;
       display: flex; flex-direction: column;
+      min-width: 0;
       box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 16px 32px -20px rgba(15,23,42,0.15);
     }
     .month-box-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
