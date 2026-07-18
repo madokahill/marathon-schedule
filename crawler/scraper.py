@@ -262,20 +262,121 @@ def crawl_sample_data():
     ]
 
 
+def crawl_marathon_pe_kr():
+    """marathon.pe.kr (마라톤온라인) 대회 일정 크롤링"""
+    results = []
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+    try:
+        url = "http://www.marathon.pe.kr/schedule/list.php"
+        res = requests.get(url, headers=headers, timeout=15, verify=False)
+        try:
+            text = res.content.decode("utf-8")
+        except:
+            text = res.content.decode("euc-kr", errors="ignore")
+
+        soup = BeautifulSoup(text, "html.parser")
+        rows = soup.find_all("tr")
+
+        current_year = datetime.now().year
+        data_started = False
+
+        for row in rows:
+            txt = row.get_text(" | ", strip=True)
+            if not txt:
+                continue
+
+            if "날짜" in txt and "대회명" in txt and "장소" in txt:
+                data_started = True
+                continue
+
+            if not data_started:
+                continue
+
+            parts = [p.strip() for p in txt.split("|") if p.strip()]
+            if len(parts) < 3:
+                continue
+
+            date_match = re.match(r'^(\d{1,2})/(\d{1,2})$', parts[0])
+            if not date_match:
+                continue
+
+            month = int(date_match.group(1))
+            day = int(date_match.group(2))
+
+            now = datetime.now()
+            year = current_year
+            if month < now.month - 1:
+                year = current_year + 1
+
+            date_str = f"{year}-{month:02d}-{day:02d}"
+
+            idx = 1
+            if idx < len(parts) and re.match(r'^\([월화수목금토일]\)$', parts[idx]):
+                idx += 1
+
+            if idx >= len(parts):
+                continue
+
+            title = parts[idx] if idx < len(parts) else ""
+            distance = parts[idx+1] if idx+1 < len(parts) else ""
+            location = parts[idx+2] if idx+2 < len(parts) else ""
+            organizer = parts[idx+3] if idx+3 < len(parts) else ""
+            organizer = re.sub(r'☎.*', '', organizer).strip()
+
+            link = ""
+            for a_tag in row.find_all("a"):
+                href = a_tag.get("href", "")
+                if href.startswith("http"):
+                    link = href
+                    break
+                js_match = re.search(r"view\.php\?no=(\d+)", href)
+                if js_match:
+                    link = f"http://www.marathon.pe.kr/schedule/view.php?no={js_match.group(1)}"
+                    break
+                elif href and not href.startswith("javascript"):
+                    link = "http://www.marathon.pe.kr/" + href.lstrip("/")
+                    break
+
+            if title and date_str:
+                results.append({
+                    "title": title,
+                    "date": date_str,
+                    "location": location,
+                    "distance": distance,
+                    "organizer": organizer,
+                    "url": link,
+                    "reg_start": "",
+                    "reg_end": "",
+                    "reg_url": link,
+                    "source": "marathon.pe.kr",
+                })
+
+    except Exception as e:
+        print(f"[marathon.pe.kr 크롤링 오류] {e}")
+
+    return results
+
+
 def run():
     init_db()
     print("크롤링 시작...")
 
-    races = crawl_marathon_online()
-    print(f"marathon.pe.kr: {len(races)}건 수집")
+    races1 = crawl_marathon_online()
+    print(f"roadrun.co.kr: {len(races1)}건 수집")
+
+    races2 = crawl_marathon_pe_kr()
+    print(f"marathon.pe.kr: {len(races2)}건 수집")
+
+    all_races = races1 + races2
 
     # 크롤링 결과가 없으면 샘플 데이터 사용
-    if not races:
-        races = crawl_sample_data()
-        print(f"샘플 데이터 {len(races)}건 사용")
+    if not all_races:
+        all_races = crawl_sample_data()
+        print(f"샘플 데이터 {len(all_races)}건 사용")
 
-    upsert_race(races)
-    print(f"DB 저장 완료: 총 {len(races)}건")
+    upsert_race(all_races)
+    print(f"DB 저장 완료: 총 {len(all_races)}건")
 
 
 if __name__ == "__main__":
