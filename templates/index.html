@@ -54,7 +54,7 @@
     .news-row-title { font-size: 14px; font-weight: 600; color: #1e293b; line-height: 1.6; overflow-wrap: break-word; }
 
     /* 월별 박스 그리드 */
-    .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(440px, 1fr)); gap: 24px; }
+    .month-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
     .month-box {
       background: #fff;
       border-radius: 24px; padding: 24px;
@@ -117,7 +117,6 @@
 
     @media (max-width: 640px) {
       .hero-title { font-size: 2rem; }
-      .month-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
