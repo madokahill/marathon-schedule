@@ -6,6 +6,8 @@ import sqlite3
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
+from email.utils import parsedate_to_datetime
+import xml.etree.ElementTree as ET
 import re
 import os
 
@@ -28,6 +30,16 @@ def init_db():
             reg_start TEXT,
             reg_end TEXT,
             reg_url TEXT,
+            created_at TEXT DEFAULT (datetime('now', 'localtime'))
+        )
+    """)
+    c.execute("""
+        CREATE TABLE IF NOT EXISTS news (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            url TEXT,
+            source TEXT,
+            published TEXT,
             created_at TEXT DEFAULT (datetime('now', 'localtime'))
         )
     """)
@@ -358,6 +370,54 @@ def crawl_marathon_pe_kr():
     return results
 
 
+def crawl_marathon_news(limit=15):
+    """구글 뉴스에서 최근 마라톤 대회 관련 기사 크롤링"""
+    results = []
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+
+    try:
+        url = "https://news.google.com/rss/search?q=마라톤+대회&hl=ko&gl=KR&ceid=KR:ko"
+        res = requests.get(url, headers=headers, timeout=10)
+        root = ET.fromstring(res.content)
+
+        for item in root.findall(".//item")[:limit]:
+            title = (item.findtext("title") or "").strip()
+            link = (item.findtext("link") or "").strip()
+            pub_date = item.findtext("pubDate") or ""
+            source_el = item.find("source")
+            source = source_el.text.strip() if source_el is not None and source_el.text else ""
+
+            if source and title.endswith(f" - {source}"):
+                title = title[: -(len(source) + 3)].strip()
+
+            published = ""
+            try:
+                published = parsedate_to_datetime(pub_date).strftime("%Y-%m-%d")
+            except Exception:
+                pass
+
+            if title and link:
+                results.append({"title": title, "url": link, "source": source, "published": published})
+
+    except Exception as e:
+        print(f"[마라톤 뉴스 크롤링 오류] {e}")
+
+    return results
+
+
+def save_news(news: list[dict]):
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("DELETE FROM news")
+    for n in news:
+        c.execute(
+            "INSERT INTO news (title, url, source, published) VALUES (?,?,?,?)",
+            (n["title"], n["url"], n["source"], n["published"]),
+        )
+    conn.commit()
+    conn.close()
+
+
 def run():
     init_db()
     print("크롤링 시작...")
@@ -377,6 +437,10 @@ def run():
 
     upsert_race(all_races)
     print(f"DB 저장 완료: 총 {len(all_races)}건")
+
+    news = crawl_marathon_news()
+    save_news(news)
+    print(f"마라톤 뉴스: {len(news)}건 수집")
 
 
 if __name__ == "__main__":

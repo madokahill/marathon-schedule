@@ -8,137 +8,116 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     * { font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif; }
-    body { background: #0f172a; color: #f1f5f9; min-height: 100vh; }
+    body { background: #f8fafc; color: #1e293b; min-height: 100vh; }
     a { text-decoration: none; }
     button { cursor: pointer; font-family: inherit; }
 
     /* 히어로 */
     .hero {
-      background: linear-gradient(160deg, #0a0f1e 0%, #0c2340 40%, #0f3460 70%, #0a1628 100%);
-      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(160deg, #fff7ed 0%, #fffbf5 40%, #ffffff 100%);
+      border-bottom: 1px solid #f1e4d4;
       position: relative; overflow: hidden;
     }
     .hero::before {
       content: ''; position: absolute; top: -40%; right: -10%;
       width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(56,189,248,0.12) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(249,115,22,0.10) 0%, transparent 70%);
       pointer-events: none;
     }
-    .hero-inner { max-width: 72rem; margin: 0 auto; padding: 3.5rem 1.5rem; position: relative; z-index: 1; }
-    .hero-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; }
-    .hero-brand { font-size: 12px; letter-spacing: 0.1em; }
-    .hero-brand strong { color: #fff; font-weight: 700; }
-    .hero-brand span { color: #64748b; }
+    .hero-inner { max-width: 80rem; margin: 0 auto; padding: 1.5rem 1.5rem 3rem; position: relative; z-index: 1; }
+    .hero-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .hero-brand { font-size: 12px; letter-spacing: 0.05em; }
+    .hero-brand strong { color: #1e293b; font-weight: 700; }
+    .hero-brand span { color: #94a3b8; }
     .hero-update { background: none; border: none; color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 6px; }
-    .hero-update:hover { color: #38bdf8; }
-    .hero-sub { color: #38bdf8; font-size: 12px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.75rem; }
-    .hero-title { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1.15; margin-bottom: 1rem; }
-    .hero-title span { color: #38bdf8; }
-    .hero-desc { color: #94a3b8; font-size: 15px; margin-bottom: 2rem; }
+    .hero-update:hover { color: #f97316; }
+    .hero-title { font-size: 3.25rem; font-weight: 300; color: #0f172a; line-height: 1.1; letter-spacing: -0.03em; margin-bottom: 1.75rem; }
+    .hero-title span { color: #f97316; font-weight: 700; }
     .hero-search input {
-      width: 100%; max-width: 36rem;
-      background: #1e293b; border: 1px solid #475569;
-      border-radius: 16px; padding: 16px 20px;
-      font-size: 14px; color: #fff; outline: none;
+      width: 100%; max-width: 22rem;
+      background: #fff; border: 1px solid #e2e8f0;
+      border-radius: 999px; padding: 12px 20px;
+      font-size: 13px; color: #0f172a; outline: none;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
-    .hero-search input::placeholder { color: #64748b; }
-    .hero-search input:focus { border-color: #38bdf8; }
-
-    /* 탭 */
-    .tabs { border-bottom: 1px solid rgba(255,255,255,0.08); background: #0f172a; position: sticky; top: 0; z-index: 10; }
-    .tabs-inner { max-width: 72rem; margin: 0 auto; padding: 0 1.5rem; display: flex; gap: 1.5rem; }
-    .tab-btn { background: none; border: none; border-bottom: 2px solid transparent; padding: 14px 0; font-size: 14px; font-weight: 500; color: #64748b; margin-bottom: -1px; }
-    .tab-btn:hover { color: #fff; }
-    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; }
+    .hero-search input::placeholder { color: #94a3b8; }
+    .hero-search input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
 
     /* 메인 */
-    .main { max-width: 72rem; margin: 0 auto; padding: 1.5rem; }
+    .main { max-width: 80rem; margin: 0 auto; padding: 2rem 1.5rem; }
 
-    /* 필터 */
-    .filters { display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    .filters select {
-      background: #1e293b; border: 1px solid #334155;
-      border-radius: 12px; padding: 10px 16px;
-      font-size: 13px; color: #cbd5e1; outline: none;
-    }
-    .result-count { font-size: 12px; color: #64748b; margin-bottom: 1rem; }
+    /* 뉴스 */
+    .news-box .month-race-list { max-height: 150px; gap: 0; }
+    .news-row { display: block; border-radius: 8px; padding: 2px 6px; transition: background 0.15s; }
+    .news-row:hover { background: #fff7ed; }
+    .news-row-title { font-size: 13px; font-weight: 600; color: #1e293b; line-height: 1.6; }
 
-    /* 카드 */
-    .race-list { display: flex; flex-direction: column; gap: 10px; }
-    .race-card {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px; padding: 18px 20px; cursor: pointer;
-      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+    /* 월별 박스 그리드 */
+    .month-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 24px; }
+    .month-box {
+      background: #fff;
+      border-radius: 24px; padding: 24px;
+      display: flex; flex-direction: column;
+      box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 16px 32px -20px rgba(15,23,42,0.15);
     }
-    .race-card:hover { background: rgba(56,189,248,0.07); border-color: rgba(56,189,248,0.25); transform: translateY(-1px); }
-    .race-card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-    .race-card-body { flex: 1; min-width: 0; }
-    .race-card-right { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; flex-shrink: 0; }
+    .month-box-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+    .month-box-title { font-size: 22px; font-weight: 800; color: #0f172a; }
+    .month-box-title .year { font-size: 12px; font-weight: 500; color: #94a3b8; margin-left: 6px; }
+    .month-box-count { font-size: 12px; color: #f97316; font-weight: 600; }
+    .month-race-list { display: flex; flex-direction: column; gap: 4px; max-height: 460px; overflow-y: auto; padding-right: 4px; }
+
+    /* 대회 행 */
+    .race-row { border-radius: 12px; padding: 10px 10px; cursor: pointer; transition: background 0.15s; }
+    .race-row:hover { background: #fff7ed; }
+    .race-row-top { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .race-row-day { font-size: 12px; font-weight: 700; color: #f97316; flex-shrink: 0; width: 34px; }
+    .race-row-title { font-size: 13px; font-weight: 600; color: #1e293b; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .race-row-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 11px; color: #94a3b8; padding-left: 42px; }
 
     /* 배지 */
-    .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px; }
-    .badge-open  { background: #3b82f6; color: #fff; }
+    .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
+    .badge-open  { background: #f97316; color: #fff; }
     .badge-closed{ background: #ef4444; color: #fff; }
-    .badge-ended { background: #334155; color: #94a3b8; }
-    .badge-dist  { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+    .badge-dist  { display: inline-block; font-size: 10px; font-weight: 700; padding: 1px 7px; border-radius: 999px; flex-shrink: 0; }
     .bd-full { background:#fecaca; color:#991b1b; }
-    .bd-half { background:#bfdbfe; color:#1e40af; }
+    .bd-half { background:#fde68a; color:#92400e; }
     .bd-10k  { background:#bbf7d0; color:#166534; }
-    .bd-5k   { background:#fef08a; color:#854d0e; }
-
-    .race-title { font-size: 15px; font-weight: 700; color: #f1f5f9; margin-bottom: 8px; }
-    .race-title.dim { color: #94a3b8; }
-    .race-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #64748b; }
-
-    /* 캘린더 */
-    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .cal-nav { background: none; border: none; color: #94a3b8; font-size: 20px; padding: 4px 10px; border-radius: 8px; }
-    .cal-nav:hover { background: #1e293b; color: #fff; }
-    .cal-title-text { font-size: 17px; font-weight: 700; }
-    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
-    .cal-dow { text-align: center; font-size: 11px; color: #64748b; padding: 8px 0; }
-    .cal-day { min-height: 70px; border-radius: 10px; padding: 6px; background: rgba(255,255,255,0.02); }
-    .cal-day.clickable { cursor: pointer; }
-    .cal-day.clickable:hover { background: rgba(56,189,248,0.1); }
-    .cal-day-num { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 4px; }
-    .cal-day-num.today-num { color: #38bdf8; }
-    .cal-chip { font-size: 10px; background: rgba(56,189,248,0.15); color: #7dd3fc; border-radius: 4px; padding: 2px 4px; margin-bottom: 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .bd-5k   { background:#bfdbfe; color:#1e40af; }
 
     /* 모달 */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
-    .modal-box { background: #1e293b; border: 1px solid #334155; border-radius: 20px; max-width: 440px; width: 100%; padding: 24px; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.5); backdrop-filter: blur(4px); z-index: 50; display: flex; align-items: center; justify-content: center; padding: 16px; }
+    .modal-box { background: #fff; border-radius: 24px; max-width: 440px; width: 100%; padding: 24px; box-shadow: 0 24px 48px -12px rgba(15,23,42,0.25); }
     .modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-    .modal-title { font-size: 16px; font-weight: 700; color: #fff; flex: 1; padding-right: 12px; }
-    .modal-close-btn { background: none; border: none; color: #64748b; font-size: 24px; line-height: 1; }
-    .modal-close-btn:hover { color: #fff; }
+    .modal-title { font-size: 16px; font-weight: 700; color: #0f172a; flex: 1; padding-right: 12px; }
+    .modal-close-btn { background: none; border: none; color: #94a3b8; font-size: 24px; line-height: 1; }
+    .modal-close-btn:hover { color: #0f172a; }
     .modal-dl { font-size: 13px; display: flex; flex-direction: column; gap: 10px; }
     .modal-row { display: flex; gap: 12px; }
-    .modal-dt { color: #64748b; width: 52px; flex-shrink: 0; }
-    .modal-dd { color: #e2e8f0; }
-    .modal-hr { border: none; border-top: 1px solid #334155; margin: 12px 0; }
-    .modal-reg-label { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+    .modal-dt { color: #94a3b8; width: 52px; flex-shrink: 0; }
+    .modal-dd { color: #334155; }
+    .modal-hr { border: none; border-top: 1px solid #e2e8f0; margin: 12px 0; }
+    .modal-reg-label { font-size: 10px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
     .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
-    .btn-green { flex:1; display:block; text-align:center; background:#22c55e; color:#fff; border-radius:12px; padding:11px; font-size:13px; font-weight:600; }
-    .btn-green:hover { background: #16a34a; }
-    .btn-gray  { flex:1; display:block; text-align:center; background:#334155; color:#fff; border-radius:12px; padding:11px; font-size:13px; font-weight:600; }
-    .btn-gray:hover  { background: #475569; }
+    .btn-green { flex:1; display:block; text-align:center; background:#f97316; color:#fff; border-radius:12px; padding:11px; font-size:13px; font-weight:600; }
+    .btn-green:hover { background: #ea580c; }
+    .btn-gray  { flex:1; display:block; text-align:center; background:#f1f5f9; color:#334155; border-radius:12px; padding:11px; font-size:13px; font-weight:600; }
+    .btn-gray:hover  { background: #e2e8f0; }
 
     /* 토스트 */
-    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#1e293b; border:1px solid #334155; color:#fff; padding:10px 20px; border-radius:999px; font-size:13px; z-index:100; white-space:nowrap; }
+    .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#0f172a; border:1px solid #1e293b; color:#fff; padding:10px 20px; border-radius:999px; font-size:13px; z-index:100; white-space:nowrap; }
 
-    .empty-state { text-align:center; padding:80px 0; color:#475569; }
+    .empty-state { text-align:center; padding:80px 0; color:#94a3b8; }
     .empty-icon { font-size:48px; margin-bottom:12px; }
     .hidden { display: none !important; }
 
     ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #0f172a; }
-    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-track { background: #f8fafc; }
+    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 3px; }
 
     @media (max-width: 640px) {
       .hero-title { font-size: 2rem; }
-      .race-card-row { flex-direction: column; }
-      .race-card-right { flex-direction: row; }
+      .month-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -151,141 +130,73 @@
       <div class="hero-brand"><strong>YRC</strong> <span>· Yuanta Running Crew가 함께합니다</span></div>
       <button class="hero-update" onclick="triggerCrawl()">↻ 업데이트</button>
     </nav>
-    <p class="hero-sub">Korea Race Schedule</p>
-    <h1 class="hero-title">마라톤 <span>대회 일정</span></h1>
-    <p class="hero-desc">전국 마라톤·로드레이스·트레일런 대회 정보를 한눈에</p>
+    <h1 class="hero-title">Marathon <span>Race Schedule</span></h1>
     <div class="hero-search">
       <input id="search-input" type="text" placeholder="🔍  대회명 또는 지역으로 검색..." oninput="filterRaces()" />
     </div>
   </div>
 </header>
 
-<!-- 탭 -->
-<div class="tabs">
-  <div class="tabs-inner">
-    <button class="tab-btn active" id="tab-list"     onclick="switchTab('list')">예정 대회</button>
-    <button class="tab-btn"        id="tab-past"     onclick="switchTab('past')">완료 대회</button>
-    <button class="tab-btn"        id="tab-calendar" onclick="switchTab('calendar')">캘린더</button>
-  </div>
-</div>
-
 <main class="main">
-  <!-- 필터 -->
-  <div class="filters">
-    <select id="distance-filter" onchange="filterRaces()">
-      <option value="">모든 거리</option>
-      <option value="풀">풀마라톤</option>
-      <option value="하프">하프</option>
-      <option value="10K">10K</option>
-      <option value="5K">5K</option>
-    </select>
-    <select id="month-filter" onchange="filterRaces()">
-      <option value="">모든 월</option>
-      {% for m in range(1,13) %}
-      <option value="{{ m }}">{{ m }}월</option>
-      {% endfor %}
-    </select>
-  </div>
-  <div class="result-count" id="result-count"></div>
-
-  <!-- 예정 대회 탭 -->
-  <div id="view-list">
-    <div class="race-list" id="race-list-upcoming">
-      {% for race in races if race.date >= today %}
-      {% set is_closed = '마감' in race.title or (race.reg_end and today > race.reg_end) %}
-      <div class="race-card"
-           data-title="{{ race.title }}"
-           data-date="{{ race.date }}"
-           data-location="{{ race.location or '' }}"
-           data-distance="{{ race.distance or '' }}"
-           data-organizer="{{ race.organizer or '' }}"
-           data-url="{{ race.url or '' }}"
-           data-reg-start="{{ race.reg_start or '' }}"
-           data-reg-end="{{ race.reg_end or '' }}"
-           data-reg-url="{{ race.reg_url or '' }}"
-           data-status="upcoming"
-           onclick="openDetail(this)">
-        <div class="race-card-row">
-          <div class="race-card-body">
+  <div class="month-grid" id="month-grid">
+    {% if news %}
+    <div class="month-box news-box">
+      <div class="month-race-list">
+        {% for item in news %}
+        <a class="news-row" href="{{ item.url }}" target="_blank" rel="noopener">
+          <div class="news-row-title">{{ item.title }}</div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+    {% for group in month_groups %}
+    <div class="month-box" data-month-box>
+      <div class="month-box-head">
+        <div class="month-box-title">{{ group.month }}월 <span class="year">{{ group.year }}</span></div>
+        <div class="month-box-count" data-month-count></div>
+      </div>
+      <div class="month-race-list">
+        {% for race in group.races %}
+        {% set is_closed = '마감' in race.title or (race.reg_end and today > race.reg_end) %}
+        <div class="race-row"
+             data-title="{{ race.title }}"
+             data-date="{{ race.date }}"
+             data-location="{{ race.location or '' }}"
+             data-distance="{{ race.distance or '' }}"
+             data-organizer="{{ race.organizer or '' }}"
+             data-url="{{ race.url or '' }}"
+             data-reg-start="{{ race.reg_start or '' }}"
+             data-reg-end="{{ race.reg_end or '' }}"
+             data-reg-url="{{ race.reg_url or '' }}"
+             onclick="openDetail(this)">
+          <div class="race-row-top">
+            <span class="race-row-day">{{ race.date[8:10] }}일</span>
+            <span class="race-row-title">{{ race.title }}</span>
             {% if is_closed %}
-            <span class="badge badge-closed">✕ 접수마감</span>
+            <span class="badge badge-closed">마감</span>
             {% else %}
-            <span class="badge badge-open">● 접수중</span>
+            <span class="badge badge-open">접수중</span>
             {% endif %}
-            <div class="race-title">{{ race.title }}</div>
-            <div class="race-meta">
-              <span>📅 {{ race.date }}</span>
-              {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
-              {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
-            </div>
-          </div>
-          <div class="race-card-right">
             {% if '풀' in race.distance %}<span class="badge-dist bd-full">풀</span>{% endif %}
             {% if '하프' in race.distance %}<span class="badge-dist bd-half">하프</span>{% endif %}
             {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}<span class="badge-dist bd-10k">10K</span>{% endif %}
             {% if '5K' in race.distance or '5k' in race.distance or '5km' in race.distance %}<span class="badge-dist bd-5k">5K</span>{% endif %}
           </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    <div id="empty-state" class="empty-state hidden">
-      <div class="empty-icon">🔍</div>
-      <p>검색 결과가 없습니다.</p>
-    </div>
-  </div>
-
-  <!-- 완료 대회 탭 -->
-  <div id="view-past" class="hidden">
-    <div class="race-list">
-      {% for race in races if race.date < today %}
-      <div class="race-card" style="opacity:0.75;"
-           data-title="{{ race.title }}"
-           data-date="{{ race.date }}"
-           data-location="{{ race.location or '' }}"
-           data-distance="{{ race.distance or '' }}"
-           data-organizer="{{ race.organizer or '' }}"
-           data-url="{{ race.url or '' }}"
-           data-reg-start="{{ race.reg_start or '' }}"
-           data-reg-end="{{ race.reg_end or '' }}"
-           data-reg-url="{{ race.reg_url or '' }}"
-           data-status="past"
-           onclick="openDetail(this)">
-        <div class="race-card-row">
-          <div class="race-card-body">
-            <span class="badge badge-ended">종료</span>
-            <div class="race-title dim">{{ race.title }}</div>
-            <div class="race-meta">
-              <span>📅 {{ race.date }}</span>
-              {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
-              {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
-            </div>
-          </div>
-          <div class="race-card-right">
-            {% if '풀' in race.distance %}<span class="badge-dist bd-full">풀</span>{% endif %}
-            {% if '하프' in race.distance %}<span class="badge-dist bd-half">하프</span>{% endif %}
-            {% if '10K' in race.distance or '10k' in race.distance or '10km' in race.distance %}<span class="badge-dist bd-10k">10K</span>{% endif %}
-            {% if '5K' in race.distance or '5k' in race.distance or '5km' in race.distance %}<span class="badge-dist bd-5k">5K</span>{% endif %}
+          <div class="race-row-meta">
+            {% if race.location %}<span>📍 {{ race.location }}</span>{% endif %}
+            {% if race.organizer %}<span>🏢 {{ race.organizer }}</span>{% endif %}
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
     </div>
+    {% endfor %}
   </div>
 
-  <!-- 캘린더 탭 -->
-  <div id="view-calendar" class="hidden">
-    <div class="cal-header">
-      <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
-      <span class="cal-title-text" id="cal-title"></span>
-      <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
-    </div>
-    <div class="cal-grid">
-      {% for d in ['일','월','화','수','목','금','토'] %}
-      <div class="cal-dow">{{ d }}</div>
-      {% endfor %}
-    </div>
-    <div class="cal-grid" id="cal-grid"></div>
+  <div id="empty-state" class="empty-state hidden">
+    <div class="empty-icon">🔍</div>
+    <p>검색 결과가 없습니다.</p>
   </div>
 </main>
 
@@ -318,57 +229,27 @@
 
 <script>
   const today = "{{ today }}";
-  const thisMonth = today.slice(0,7);
-
-  const allRaces = [
-    {% for race in races %}
-    {
-      title: {{ race.title | tojson }},
-      date: {{ race.date | tojson }},
-      location: {{ (race.location or '') | tojson }},
-      distance: {{ (race.distance or '') | tojson }},
-      organizer: {{ (race.organizer or '') | tojson }},
-      url: {{ (race.url or '') | tojson }},
-      regStart: {{ (race.reg_start or '') | tojson }},
-      regEnd: {{ (race.reg_end or '') | tojson }},
-      regUrl: {{ (race.reg_url or '') | tojson }},
-    },
-    {% endfor %}
-  ];
-
-  // 탭
-  function switchTab(tab) {
-    ['list','past','calendar'].forEach(t => {
-      const v = document.getElementById('view-' + t);
-      const b = document.getElementById('tab-' + t);
-      if (v) v.classList.toggle('hidden', t !== tab);
-      if (b) { b.classList.toggle('active', t === tab); }
-    });
-    if (tab === 'calendar') renderCalendar();
-  }
 
   // 필터
-  const upcomingCards = document.querySelectorAll('[data-status="upcoming"]');
+  const raceRows = document.querySelectorAll('.race-row');
+  const monthBoxes = document.querySelectorAll('[data-month-box]');
   function filterRaces() {
     const q = document.getElementById('search-input').value.toLowerCase();
-    const dist = document.getElementById('distance-filter').value;
-    const rawMonth = document.getElementById('month-filter').value;
-    const month = rawMonth ? rawMonth.padStart(2,'0') : '';
     let visible = 0;
-    upcomingCards.forEach(c => {
-      const mQ = !q || c.dataset.title.toLowerCase().includes(q) || c.dataset.location.toLowerCase().includes(q);
-      const mD = !dist || c.dataset.distance.toLowerCase().includes(dist.toLowerCase());
-      const mM = !month || (c.dataset.date && c.dataset.date.split('-')[1] === month);
-      const show = mQ && mD && mM;
-      c.classList.toggle('hidden', !show);
-      if (show) visible++;
+    monthBoxes.forEach(box => {
+      let boxVisible = 0;
+      box.querySelectorAll('.race-row').forEach(c => {
+        const show = !q || c.dataset.title.toLowerCase().includes(q) || c.dataset.location.toLowerCase().includes(q);
+        c.classList.toggle('hidden', !show);
+        if (show) boxVisible++;
+      });
+      box.classList.toggle('hidden', boxVisible === 0);
+      box.querySelector('[data-month-count]').textContent = boxVisible + '건';
+      visible += boxVisible;
     });
-    document.getElementById('result-count').textContent = visible + '건의 대회';
     document.getElementById('empty-state').classList.toggle('hidden', visible > 0);
   }
-
-  // 초기 카운트
-  document.getElementById('result-count').textContent = upcomingCards.length + '건의 대회';
+  filterRaces();
 
   // 모달
   function openDetail(el) {
@@ -407,45 +288,6 @@
   }
   function closeModal() { document.getElementById('modal').classList.add('hidden'); }
   function handleModalClick(e) { if (e.target === document.getElementById('modal')) closeModal(); }
-
-  // 캘린더
-  let calYear = new Date().getFullYear();
-  let calMonth = new Date().getMonth();
-  function renderCalendar() {
-    const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-    document.getElementById('cal-title').textContent = calYear + '년 ' + months[calMonth];
-    const grid = document.getElementById('cal-grid');
-    grid.innerHTML = '';
-    const firstDay = new Date(calYear, calMonth, 1).getDay();
-    const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-    for (let i = 0; i < firstDay; i++) grid.innerHTML += '<div class="cal-day"></div>';
-    for (let d = 1; d <= daysInMonth; d++) {
-      const ds = calYear + '-' + String(calMonth+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
-      const dayRaces = allRaces.filter(r => r.date === ds);
-      const isToday = ds === today;
-      let html = `<div class="cal-day ${dayRaces.length ? 'clickable' : ''} ${isToday ? 'ring' : ''}" ${dayRaces.length===1 ? `onclick="openCalDetail('${ds}')"` : ''} style="${isToday ? 'border:1px solid #38bdf8;' : ''}">`;
-      html += `<div class="cal-day-num ${isToday ? 'today-num' : ''}">${d}</div>`;
-      dayRaces.slice(0,2).forEach(r => { html += `<div class="cal-chip">${r.title.slice(0,8)}</div>`; });
-      if (dayRaces.length > 2) html += `<div style="font-size:10px;color:#64748b;">+${dayRaces.length-2}건</div>`;
-      html += '</div>';
-      grid.innerHTML += html;
-    }
-  }
-  function openCalDetail(ds) {
-    const r = allRaces.find(r => r.date === ds);
-    if (!r) return;
-    const el = document.createElement('div');
-    el.dataset.title = r.title; el.dataset.date = r.date; el.dataset.location = r.location;
-    el.dataset.distance = r.distance; el.dataset.organizer = r.organizer;
-    el.dataset.url = r.url; el.dataset.regStart = r.regStart; el.dataset.regEnd = r.regEnd; el.dataset.regUrl = r.regUrl;
-    openDetail(el);
-  }
-  function changeMonth(dir) {
-    calMonth += dir;
-    if (calMonth > 11) { calMonth = 0; calYear++; }
-    if (calMonth < 0)  { calMonth = 11; calYear--; }
-    renderCalendar();
-  }
 
   // 업데이트
   async function triggerCrawl() {
